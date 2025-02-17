@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:versealyric/models/lyrics_model.dart';
+import 'package:versealyric/database/database.dart';
 import 'package:versealyric/screens/ui_plain_lyrics.dart';
 
 class UiSyncedLyrics extends StatefulWidget {
   const UiSyncedLyrics({super.key,required this.trackData});
 
-  final Lyrics trackData;
+  final LyricsHive trackData;
 
   @override
   State<UiSyncedLyrics> createState() => _UiSyncedLyricsState();
@@ -166,18 +166,21 @@ class _UiSyncedLyricsState extends State<UiSyncedLyrics> {
                   },
                   mini: true, // Makes the button smaller
                   child: const Icon(Icons.favorite_border),
+                  heroTag: 'favourite',
                 ),
                 const SizedBox(height: 8),
                 FloatingActionButton(
                   onPressed: _increaseFontSize,
                   mini: true, // Makes the button smaller
                   child: const Icon(Icons.add),
+                  heroTag: '+',
                 ),
                 // Space between the buttons
                 FloatingActionButton(
                   onPressed: _decreaseFontSize,
                   mini: true, // Makes the button smaller
                   child: const Icon(Icons.remove),
+                  heroTag: '-',
                 ),
               ],
             ),

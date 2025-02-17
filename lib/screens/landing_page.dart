@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:versealyric/screens/ui_favourite.dart';
 
 import 'ui_search_page.dart'; // rest screens
 
@@ -17,13 +17,14 @@ class _LandingPageState extends State<LandingPage> {
 
   List<BottomNavigationBarItem> bottomNavBarItems = const [
     BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search",backgroundColor: Colors.grey),
-    BottomNavigationBarItem(icon: Icon(Icons.favorite), label: "Favorites",backgroundColor: Colors.grey),
+    BottomNavigationBarItem(icon: Icon(Icons.favorite_border), label: "Favorites",backgroundColor: Colors.grey),
     BottomNavigationBarItem(icon: Icon(Icons.account_circle), label: "Profile",backgroundColor: Colors.grey),
   ];
 
   List<Widget> uiPages() {
     return <Widget>[
-      FrontPage()
+      const FrontPage(),
+      const UiFavourite(),
       // const SearchPage(title: '1'),
       // const SearchPage(title: '2'),
       // const SearchPage(title: '3'),

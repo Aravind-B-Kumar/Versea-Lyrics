@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:versealyric/core/api/fetchLyrics.dart';
+import 'package:versealyric/database/database.dart';
 import 'package:versealyric/models/lyrics_model.dart';
 import 'package:versealyric/screens/ui_plain_lyrics.dart';
+
+import '../database/database_services.dart';
 
 // class SearchPage extends StatefulWidget {
 //   const SearchPage({super.key, required this.title});
@@ -43,8 +46,16 @@ class FrontPage extends StatefulWidget {
 class _FrontPageState extends State<FrontPage> {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController artistNameController = TextEditingController();
+  final FavouriteService favouriteService = FavouriteService();
   bool _isLoading = false;
   List<Lyrics> _searchResults = [];
+  List<Favourite> allFavs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchAllFavs();
+  }
 
   void _showInfoDialog() {
     showDialog(
@@ -63,6 +74,14 @@ class _FrontPageState extends State<FrontPage> {
         );
       },
     );
+  }
+
+  Future<void> fetchAllFavs() async{
+    allFavs = await favouriteService.getAllFavourites();
+  }
+
+  bool isFavourite(int id) {
+    return allFavs.any((favItem) => favItem.trackData.id == id);
   }
 
   @override
@@ -174,11 +193,18 @@ class _FrontPageState extends State<FrontPage> {
                               child: const Icon(Icons.music_note_outlined, color: Colors.blue),
                             ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.favorite_border),
-                              onPressed: (){
-                                //TODO
+                              icon: isFavourite(item.id) ? const Icon(Icons.favorite,color: Colors.red,) : const Icon(Icons.favorite_border),
+                              onPressed: () async {
+                                if (isFavourite(item.id)) { // Check if already favorite
+                                  await favouriteService.deleteTrackData(LyricsHive.fromJson(item)); // Remove item
+                                } else {
+                                  await favouriteService.addItem(LyricsHive.fromJson(item)); // Add item
+                                }
+                                await fetchAllFavs();
+                                setState(() {});
                               },
                             ),
+
                             title: Text(
                               item.trackName,
                               style: const TextStyle(
@@ -195,7 +221,7 @@ class _FrontPageState extends State<FrontPage> {
                               ),
                             ),
                             onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => UiPlainLyrics(trackData: item,) ));
+                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => UiPlainLyrics(trackData: LyricsHive.fromJson(item),) ));
                             },
                           );
                         },
