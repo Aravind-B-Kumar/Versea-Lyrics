@@ -48,15 +48,3 @@ class _UiInfoState extends State<UiInfo> {
     );
   }
 }
-
-
-
-// import 'package:provider/provider.dart';
-// import '../providers/theme_provider.dart';
-// final themeProvider = Provider.of<ThemeProvider>(context); // above return scaffold
-// ElevatedButton(
-// onPressed: () {
-// themeProvider.toggleTheme(); //
-// },
-// child: const Text('Toggle Theme'),
-// )
