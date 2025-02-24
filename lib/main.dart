@@ -12,12 +12,11 @@ void main() async{
 
   await Hive.initFlutter();
   Hive.registerAdapter(FavouriteAdapter());
-  Hive.registerAdapter(HistoryAdapter());
-  Hive.registerAdapter(LyricsHiveAdapter());
+  Hive.registerAdapter(ThemeAdapter());
 
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ThemeProvider(lightTheme),
+      create: (_) => ThemeProvider(lightTheme)..initializeTheme(),
       child: const VerseaLyric(),
     ),
   );

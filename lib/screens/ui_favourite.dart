@@ -11,206 +11,223 @@ class UiFavourite extends StatefulWidget {
 }
 
 class _UiFavouriteState extends State<UiFavourite> {
-
   final FavouriteService favouriteService = FavouriteService();
   final TextEditingController searchController = TextEditingController();
 
-  List<Favourite> favItems=[];
+  List<Favourite> favItems = [];
 
   Map<String, bool> filterOptions = {
-    'trackName': false,
-    'artistName': false,
-    'albumName': false,
+    'trackname': true, // Default to true
+    'artistname': false,
+    'albumname': false,
     'lyrics': false,
   };
 
-  Future<List<Favourite>> getAllFavourites() async{
-    favItems = await favouriteService.getAllFavourites();
-    return favItems;
+  Future<void> showItems() async {
+    List<Favourite> allFavs = await favouriteService.getAllFavourites();
+    String searchKey = searchController.text.trim();
+
+    List<Favourite> filteredFavs = allFavs;
+
+    if (searchKey.isNotEmpty) {
+      filteredFavs = filteredFavs.where((favItem) {
+        bool matches = false;
+
+        if (filterOptions['trackname'] == true &&
+            favItem.trackName.toLowerCase().contains(searchKey.toLowerCase())) {
+          matches = true;
+        }
+        if (filterOptions['artistname'] == true &&
+            favItem.artistName.toLowerCase().contains(searchKey.toLowerCase())) {
+          matches = true;
+        }
+        if (filterOptions['albumname'] == true &&
+            favItem.albumName.toLowerCase().contains(searchKey.toLowerCase())) {
+          matches = true;
+        }
+        if (filterOptions['lyrics'] == true &&
+            favItem.plainLyrics.toLowerCase().contains(searchKey.toLowerCase())) {
+          matches = true;
+        }
+
+        return matches;
+      }).toList();
+    }
+
+    setState(() {
+      favItems = filteredFavs;
+    });
   }
 
-  Future<void> showItems() async{
-    List<Favourite> allFavs = await favouriteService.getAllFavourites();
-    String searchKey = searchController.text;
-    setState(() {
-      if (searchKey.isEmpty){
-        favItems = allFavs;
-      }else{
-        favItems = allFavs.where((favItem) {
-          return favItem.trackData.trackName.toLowerCase().contains(searchKey.toLowerCase()) ||
-              favItem.trackData.artistName.toLowerCase().contains(searchKey.toLowerCase()) ||
-              favItem.trackData.artistName.toLowerCase().contains(searchKey.toLowerCase()) ||
-              favItem.trackData.plainLyrics.toLowerCase().contains(searchKey.toLowerCase());
-        }).toList();
+  void _updateFilterOptions(Map<String, bool> updatedFilters) {
+    bool allUnchecked = true;
+    updatedFilters.forEach((key, value) {if (value == true && key != 'trackname') {
+        allUnchecked = false;
       }
     });
+
+    if (allUnchecked) {
+      updatedFilters['trackname'] = true;
+    }
+
+    setState(() {
+      filterOptions = updatedFilters;
+      showItems();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    showItems();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: FutureBuilder(
-        future: getAllFavourites(),
-        builder: (BuildContext context, AsyncSnapshot<List<Favourite>> snapshot){
-          if (snapshot.hasData){
-            if (snapshot.data!.isEmpty){ // chnaged to isEmpty
-              return const Center(child: Text("Favourites is empty!",style: TextStyle(fontSize: 20),),);
-            }else{
-              return Column(
-                children: [
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: TextField(
-                            controller: searchController,
-                            decoration: const InputDecoration(
-                                labelText: 'Search keywords',
-                                border: OutlineInputBorder()
-                            ),
-                            onChanged: (_) async {
-                              await showItems();
-                            },
-                          ),
-                        ),
-                      ),
-
-                      // IconButton(
-                      //   icon: const Icon(Icons.filter_list),
-                      //   onPressed: () {
-                      //     showDialog(
-                      //       context: context,
-                      //       builder: (context) {
-                      //         return AlertDialog(
-                      //           title: const Text('Filter Options'),
-                      //           content: Column(
-                      //             mainAxisSize: MainAxisSize.min,
-                      //             children: [
-                      //               CheckboxListTile(
-                      //                 title: const Text('Track Name'),
-                      //                 value: filterOptions['trackname'] ?? false, // Ensure non-null value
-                      //                 tristate: true,
-                      //                 onChanged: (value) {
-                      //                   setState(() {
-                      //                     filterOptions['trackname'] = value ?? false; // Ensure non-null value
-                      //                   });
-                      //
-                      //                 },
-                      //               ),
-                      //               CheckboxListTile(
-                      //                 title: const Text('Artist Name'),
-                      //                 value: filterOptions['artistname'] ?? false, // Ensure non-null value
-                      //                 onChanged: (value) {
-                      //                   setState(() {
-                      //                     filterOptions['artistname'] = value ?? false; // Ensure non-null value
-                      //                   });
-                      //                 },
-                      //               ),
-                      //               CheckboxListTile(
-                      //                 title: const Text('Album Name'),
-                      //                 value: filterOptions['albumname'] ?? false, // Ensure non-null value
-                      //                 onChanged: (value) {
-                      //                   setState(() {
-                      //                     filterOptions['albumname'] = value ?? false; // Ensure non-null value
-                      //                   });
-                      //                 },
-                      //               ),
-                      //               CheckboxListTile(
-                      //                 title: const Text('Lyrics'),
-                      //                 value: filterOptions['lyrics'] ?? false, // Ensure non-null value
-                      //                 onChanged: (value) {
-                      //                   setState(() {
-                      //                     filterOptions['lyrics'] = value ?? false; // Ensure non-null value
-                      //                   });
-                      //                 },
-                      //               ),
-                      //             ],
-                      //           ),
-                      //           actions: [
-                      //             TextButton(
-                      //               onPressed: () {
-                      //                 Navigator.pop(context);
-                      //                 //_filterFavourites(searchController.text); // Re-filter after updating options
-                      //               },
-                      //               child: const Text('Apply'),
-                      //             ),
-                      //           ],
-                      //         );
-                      //       },
-                      //     );
-                      //   },
-                      // ),
-
-                    ],
-                  ),
-
-                  const SizedBox(height: 10,),
-
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: favItems.length,
-                      itemBuilder: (BuildContext context, int index){
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                          leading: CircleAvatar(
-                            backgroundColor: Colors.blue.withOpacity(0.2),
-                            child: const Icon(Icons.music_note_outlined, color: Colors.blue),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.favorite,color: Colors.red,),
-                            onPressed: () async{
-                              await favouriteService.deleteTrackData(favItems[index].trackData);
-                              setState(() {});
-                            },
-                          ),
-                          title: Text(
-                            favItems[index].trackData.trackName,
-                            style: const TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          subtitle: Text(
-                            "${favItems[index].trackData.artistName} | ${'${(Duration(seconds: favItems[index].trackData.duration.toInt()))}'.split('.')[0].replaceFirst("0:", "")}",
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(builder: (_) => UiPlainLyrics(trackData: favItems[index].trackData,) ));
-                          },
-                        );
-                      },
+      body: Column(
+        children: [
+          // ... (rest of your build method remains the same)
+          Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: TextField(
+                    controller: searchController,
+                    decoration: const InputDecoration(
+                      labelText: 'Search keywords',
+                      border: OutlineInputBorder(),
                     ),
-                  )
-
-                ],
-              );
-            }
-          } else if(snapshot.hasError){
-            return const Center(child: Text('An Error occurred!',style: TextStyle(fontSize: 20),),);
-          } else{
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+                    onChanged: (_) {
+                      showItems();
+                    },
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      Map<String, bool> tempFilters = Map.from(filterOptions);
+                      return StatefulBuilder(
+                        builder: (context, setStateDialog) {
+                          return AlertDialog(
+                            title: const Text('Filter Options'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CheckboxListTile(
+                                  title: const Text('Track Name'),
+                                  value: tempFilters['trackname'] ?? false,
+                                  onChanged: (value) {
+                                    setStateDialog(() {
+                                      tempFilters['trackname'] = value ?? false;
+                                    });
+                                  },
+                                ),
+                                CheckboxListTile(
+                                  title: const Text('Artist Name'),
+                                  value: tempFilters['artistname'] ?? false,
+                                  onChanged: (value) {
+                                    setStateDialog(() {
+                                      tempFilters['artistname'] = value ?? false;
+                                    });
+                                  },
+                                ),
+                                CheckboxListTile(
+                                  title: const Text('Album Name'),
+                                  value: tempFilters['albumname'] ?? false,
+                                  onChanged: (value) {
+                                    setStateDialog(() {
+                                      tempFilters['albumname'] = value ?? false;
+                                    });
+                                  },
+                                ),
+                                CheckboxListTile(
+                                  title: const Text('Lyrics'),
+                                  value: tempFilters['lyrics'] ?? false,
+                                  onChanged: (value) {
+                                    setStateDialog(() {
+                                      tempFilters['lyrics'] = value ?? false;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _updateFilterOptions(tempFilters);
+                                },
+                                child: const Text('Apply'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Expanded(
+            child: favItems.isEmpty
+                ? const Center(
+              child: Text(
+                "Favourites is empty!",
+                style: TextStyle(fontSize: 20),
+              ),
+            )
+                : ListView.builder(
+              itemCount: favItems.length,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue.withOpacity(0.2),
+                    child: const Icon(Icons.music_note_outlined,
+                        color: Colors.blue),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    onPressed: () async {
+                      await favouriteService
+                          .deleteTrackData(favItems[index].id);
+                      showItems();
+                    },
+                  ),
+                  title: Text(
+                    favItems[index].trackName,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "${favItems[index].artistName} | ${'${(Duration(seconds: favItems[index].duration.toInt()))}'.split('.')[0].replaceFirst("0:", "")}",
+                    style: const TextStyle(fontSize: 14.0),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (_) =>
+                            UiPlainLyrics(trackData: favItems[index])));
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
-  }
-}
-
-
-
-
-
-class UiFavouritePage extends StatelessWidget {
-  const UiFavouritePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
   }
 }

@@ -6,24 +6,7 @@ import '../models/lyrics_model.dart';
 part 'database.g.dart';
 
 @HiveType(typeId: 0)
-class Favourite extends HiveObject {
-  @HiveField(0)
-  LyricsHive trackData;
-
-  Favourite({required this.trackData});
-}
-
-@HiveType(typeId: 1)
-class History extends HiveObject{
-  @HiveField(0)
-  String searchWord;
-
-  History({required this.searchWord});
-}
-
-
-@HiveType(typeId: 2)
-class LyricsHive {
+class Favourite {
   @HiveField(0)
   final int id;
 
@@ -48,7 +31,7 @@ class LyricsHive {
   @HiveField(7)
   final String? syncedLyrics;
 
-  LyricsHive({
+  Favourite({
     required this.id,
     required this.trackName,
     required this.artistName,
@@ -59,18 +42,28 @@ class LyricsHive {
     this.syncedLyrics,
   });
 
-  factory LyricsHive.fromJson(Lyrics trackData) => LyricsHive(
+  factory Favourite.fromTrackData(Lyrics trackData) => Favourite(
     id: trackData.id,
     trackName: trackData.trackName,
     artistName: trackData.artistName,
     albumName: trackData.albumName,
-    duration: trackData.duration, // Handle num to double
+    duration: trackData.duration,
     instrumental: trackData.instrumental,
     plainLyrics: trackData.plainLyrics,
     syncedLyrics: trackData.syncedLyrics,
   );
 
 }
+
+@HiveType(typeId: 1)
+class Theme extends HiveObject{
+  @HiveField(0,defaultValue: false)
+  bool isDarkTheme;
+
+  Theme({required this.isDarkTheme});
+}
+
+
 
 
 

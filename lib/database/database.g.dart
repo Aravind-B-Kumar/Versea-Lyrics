@@ -17,74 +17,6 @@ class FavouriteAdapter extends TypeAdapter<Favourite> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Favourite(
-      trackData: fields[0] as LyricsHive,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, Favourite obj) {
-    writer
-      ..writeByte(1)
-      ..writeByte(0)
-      ..write(obj.trackData);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is FavouriteAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class HistoryAdapter extends TypeAdapter<History> {
-  @override
-  final int typeId = 1;
-
-  @override
-  History read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return History(
-      searchWord: fields[0] as String,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, History obj) {
-    writer
-      ..writeByte(1)
-      ..writeByte(0)
-      ..write(obj.searchWord);
-  }
-
-  @override
-  int get hashCode => typeId.hashCode;
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is HistoryAdapter &&
-          runtimeType == other.runtimeType &&
-          typeId == other.typeId;
-}
-
-class LyricsHiveAdapter extends TypeAdapter<LyricsHive> {
-  @override
-  final int typeId = 2;
-
-  @override
-  LyricsHive read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-    return LyricsHive(
       id: fields[0] as int,
       trackName: fields[1] as String,
       artistName: fields[2] as String,
@@ -97,7 +29,7 @@ class LyricsHiveAdapter extends TypeAdapter<LyricsHive> {
   }
 
   @override
-  void write(BinaryWriter writer, LyricsHive obj) {
+  void write(BinaryWriter writer, Favourite obj) {
     writer
       ..writeByte(8)
       ..writeByte(0)
@@ -124,7 +56,41 @@ class LyricsHiveAdapter extends TypeAdapter<LyricsHive> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LyricsHiveAdapter &&
+      other is FavouriteAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+class ThemeAdapter extends TypeAdapter<Theme> {
+  @override
+  final int typeId = 1;
+
+  @override
+  Theme read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return Theme(
+      isDarkTheme: fields[0] == null ? false : fields[0] as bool,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Theme obj) {
+    writer
+      ..writeByte(1)
+      ..writeByte(0)
+      ..write(obj.isDarkTheme);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ThemeAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
