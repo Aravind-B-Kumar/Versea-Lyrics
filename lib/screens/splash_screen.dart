@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset("assets/splashNoBG.png"),
+            Image.asset("assets/VerseaLyricNoBg.png"),
             SizedBox(height: MediaQuery.of(context).size.width*0.05),
           ],
         ),

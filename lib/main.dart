@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:versealyric/database/database.dart';
 import 'package:versealyric/screens/splash_screen.dart';
 
 import 'providers/theme_provider.dart';
 import 'core/themes/themes.dart';
 
-void main() {
+void main() async{
+
+  await Hive.initFlutter();
+  Hive.registerAdapter(FavouriteAdapter());
+  Hive.registerAdapter(ThemeAdapter());
+
   runApp(
     ChangeNotifierProvider(
-      create: (_) => ThemeProvider(lightTheme),
+      create: (_) => ThemeProvider(lightTheme)..initializeTheme(),
       child: const VerseaLyric(),
     ),
   );
+
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
+
 }
 
 

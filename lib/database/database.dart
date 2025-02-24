@@ -1,0 +1,138 @@
+
+import 'package:hive_flutter/hive_flutter.dart';
+
+import '../models/lyrics_model.dart';
+
+part 'database.g.dart';
+
+@HiveType(typeId: 0)
+class Favourite {
+  @HiveField(0)
+  final int id;
+
+  @HiveField(1)
+  final String trackName;
+
+  @HiveField(2)
+  final String artistName;
+
+  @HiveField(3)
+  final String albumName;
+
+  @HiveField(4)
+  final double duration;
+
+  @HiveField(5)
+  final bool instrumental;
+
+  @HiveField(6)
+  final String plainLyrics;
+
+  @HiveField(7)
+  final String? syncedLyrics;
+
+  Favourite({
+    required this.id,
+    required this.trackName,
+    required this.artistName,
+    required this.albumName,
+    required this.duration,
+    required this.instrumental,
+    required this.plainLyrics,
+    this.syncedLyrics,
+  });
+
+  factory Favourite.fromTrackData(Lyrics trackData) => Favourite(
+    id: trackData.id,
+    trackName: trackData.trackName,
+    artistName: trackData.artistName,
+    albumName: trackData.albumName,
+    duration: trackData.duration,
+    instrumental: trackData.instrumental,
+    plainLyrics: trackData.plainLyrics,
+    syncedLyrics: trackData.syncedLyrics,
+  );
+
+}
+
+@HiveType(typeId: 1)
+class Theme extends HiveObject{
+  @HiveField(0,defaultValue: false)
+  bool isDarkTheme;
+
+  Theme({required this.isDarkTheme});
+}
+
+
+
+
+
+
+
+//
+// import 'package:hive_flutter/hive_flutter.dart';
+//
+// import '../models/lyrics_model.dart';
+//
+// part 'database.g.dart';
+//
+// @HiveType(typeId: 0)
+// class Favourite extends HiveObject {
+//   @HiveField(0)
+//   int id;
+//
+//   @HiveField(1)
+//   String plainLyrics;
+//
+//   @HiveField(2,defaultValue: null)
+//   String? syncedLyrics;
+//
+//   Favourite({required this.id,required this.plainLyrics, this.syncedLyrics});
+//
+//   factory Favourite.fromJson(Lyrics trackData) {
+//     return Favourite(
+//         id: trackData.id,
+//         plainLyrics: trackData.plainLyrics,
+//         syncedLyrics: trackData.syncedLyrics
+//     );
+//   }
+// }
+//
+// @HiveType(typeId: 1)
+// class History extends HiveObject{
+//   @HiveField(0)
+//   String searchWord;
+//
+//   History({required this.searchWord});
+// }
+//
+// //-------------------------------------------------------
+//
+// class FavouriteService{
+//   final String _boxName = 'favourite';
+//
+//   Future<Box<Favourite>> get _box async => await Hive.openBox<Favourite>(_boxName);
+//
+//   Future<void> addItem(Favourite favTrackData) async{
+//     var box = await _box;
+//     await box.add(favTrackData);
+//   }
+//
+//   Future<List<Favourite>> getAllFavourites() async {
+//     var box = await _box;
+//     return box.values.toList();
+//   }
+//
+//   Future<void> deleteItem(int index) async {
+//     var box = await _box;
+//     await box.deleteAt(index);
+//   }
+//
+//
+// }
+//
+//
+//
+//
+
+

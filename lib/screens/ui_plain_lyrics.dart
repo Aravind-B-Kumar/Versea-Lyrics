@@ -1,13 +1,15 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:versealyric/database/database.dart';
 
-import '../models/lyrics_model.dart';
 import 'ui_synced_lyrics.dart';
 
 class UiPlainLyrics extends StatefulWidget {
   const UiPlainLyrics({super.key, required this.trackData});
 
-  final Lyrics trackData;
+  final Favourite trackData;
 
   @override
   State<UiPlainLyrics> createState() => _UiPlainLyricsState();
@@ -17,24 +19,7 @@ class _UiPlainLyricsState extends State<UiPlainLyrics> {
 
   double _fontSize = 20.0;
   static const _currentPage = 'plain';
-
-  void _increaseFontSize() {
-    if(_fontSize>=30){
-      return;
-    }
-    setState(() {
-      _fontSize += 1.0;
-    });
-  }
-
-  void _decreaseFontSize() {
-    if(_fontSize<=16){
-      return;
-    }
-    setState(() {
-      _fontSize -= 1.0;
-    });
-  }
+  IconData copyButtonIcon = Icons.copy;
 
   void _showInfo() {
     showDialog(
@@ -112,7 +97,9 @@ class _UiPlainLyricsState extends State<UiPlainLyrics> {
           ),
 
           TextButton(
-            onPressed: (){
+            onPressed: widget.trackData.syncedLyrics==null
+                ?null
+                :(){
               Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => UiSyncedLyrics(trackData: widget.trackData))
               );
@@ -142,18 +129,22 @@ class _UiPlainLyricsState extends State<UiPlainLyrics> {
                 ),
               ),
               Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  child: SingleChildScrollView(
-                    child: Text(
-                      widget.trackData.plainLyrics,
-                      style: TextStyle(fontSize: _fontSize),
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        widget.trackData.plainLyrics,
+                        style: TextStyle(fontSize: _fontSize),
+                      ),
                     ),
                   ),
                 ),
               ),
             ],
           ),
+
 
           // Floating buttons on top of the content
           Positioned(
@@ -164,26 +155,54 @@ class _UiPlainLyricsState extends State<UiPlainLyrics> {
               children: [
                 FloatingActionButton(
                   onPressed: (){
-                    //TODO
+                    Clipboard.setData(ClipboardData(text: widget.trackData.plainLyrics)).then((_) {
+                      setState(() {
+                        copyButtonIcon = Icons.check;
+                        });
+                      Future.delayed(const Duration(seconds: 2), (){
+                        setState(() {
+                          copyButtonIcon = Icons.copy;
+                        });
+                      });
+                    });
                   },
-                  mini: true, // Makes the button smaller
-                  child: const Icon(Icons.favorite_border),
+                  mini: true,
+                  heroTag: 'copy', // Makes the button smaller
+                  child: Icon(copyButtonIcon),
                 ),
-                const SizedBox(height: 8),
+
                 FloatingActionButton(
-                  onPressed: _increaseFontSize,
-                  mini: true, // Makes the button smaller
+                  onPressed: () {
+                    if(_fontSize>=30){
+                      return;
+                    }
+                    setState(() {
+                      _fontSize += 1.0;
+                    });
+                  },
+                  mini: true,
+                  heroTag: '+', // Makes the button smaller
                   child: const Icon(Icons.add),
                 ),
                  // Space between the buttons
                 FloatingActionButton(
-                  onPressed: _decreaseFontSize,
-                  mini: true, // Makes the button smaller
+                  onPressed: () {
+                    if(_fontSize<=16){
+                      return;
+                    }
+                    setState(() {
+                      _fontSize -= 1.0;
+                    });
+                  },
+                  mini: true,
+                  heroTag: '-', // Makes the button smaller
                   child: const Icon(Icons.remove),
                 ),
               ],
             ),
           ),
+
+
         ],
       ),
     );

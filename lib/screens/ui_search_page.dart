@@ -1,57 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:versealyric/core/api/fetchLyrics.dart';
+import 'package:versealyric/core/api/fetch_lyrics.dart';
+import 'package:versealyric/database/database.dart';
 import 'package:versealyric/models/lyrics_model.dart';
 import 'package:versealyric/screens/ui_plain_lyrics.dart';
 
-// class SearchPage extends StatefulWidget {
-//   const SearchPage({super.key, required this.title});
-//
-//   final String title;
-//
-//   @override
-//   State<SearchPage> createState() => _SearchPageState();
-// }
-//
-// class _SearchPageState extends State<SearchPage> {
-//
-//   @override
-//   Widget build(BuildContext context) {
-//
-//     return Scaffold(
-//       body: Column(),
-//     );
-//   }
-// }
+import '../database/database_services.dart';
 
-// import 'package:provider/provider.dart';
-// import '../providers/theme_provider.dart';
-// final themeProvider = Provider.of<ThemeProvider>(context); // above return scaffold
-// ElevatedButton(
-// onPressed: () {
-// themeProvider.toggleTheme(); //
-// },
-// child: const Text('Toggle Theme'),
-// )
-
-class FrontPage extends StatefulWidget {
-  const FrontPage({super.key});
+class UiSearchPage extends StatefulWidget {
+  const UiSearchPage({super.key});
 
   @override
-  State<FrontPage> createState() => _FrontPageState();
+  State<UiSearchPage> createState() => _UiSearchPageState();
 }
 
-class _FrontPageState extends State<FrontPage> {
+class _UiSearchPageState extends State<UiSearchPage> with AutomaticKeepAliveClientMixin {
   final TextEditingController titleController = TextEditingController();
   final TextEditingController artistNameController = TextEditingController();
+  final FavouriteService favouriteService = FavouriteService();
   bool _isLoading = false;
   List<Lyrics> _searchResults = [];
+  List<Favourite> allFavs = [];
 
-  void _showInfoDialog() {
+  @override
+  void initState() {
+    super.initState();
+    fetchAllFavs();
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  void _showInfoDialog(String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Title field should not be empty!'),
+          title: Text(message),
           actions: [
             TextButton(
               child: const Text('OK'),
@@ -65,17 +49,18 @@ class _FrontPageState extends State<FrontPage> {
     );
   }
 
+  Future<void> fetchAllFavs() async{
+    allFavs = await favouriteService.getAllFavourites();
+  }
+
+  bool isFavourite(int id) {
+    return allFavs.any((favItem) => favItem.id == id);
+  }
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
-      // appBar: AppBar(
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.info_outline),
-      //       onPressed: _showInfoDialog,
-      //     ),
-      //   ],
-      // ),
 
       body: Column(
         children: <Widget>[
@@ -109,8 +94,14 @@ class _FrontPageState extends State<FrontPage> {
                     return;
                   }
 
-                  if (titleController.text == "") {
-                    _showInfoDialog();
+                  if (titleController.text.isEmpty) {
+
+                    if (artistNameController.text.isEmpty) {
+                      _showInfoDialog('Title field should not be empty!');
+                    } else{
+                      _showInfoDialog('Enter artist name in the Title field to search.');
+                    }
+                    return;
                   }
 
                   setState(() {
@@ -174,28 +165,31 @@ class _FrontPageState extends State<FrontPage> {
                               child: const Icon(Icons.music_note_outlined, color: Colors.blue),
                             ),
                             trailing: IconButton(
-                              icon: const Icon(Icons.favorite_border),
-                              onPressed: (){
-                                //TODO
+                              icon: isFavourite(item.id) ? const Icon(Icons.favorite,color: Colors.red,) : const Icon(Icons.favorite_border),
+                              onPressed: () async {
+                                if (isFavourite(item.id)) { // Check if already favorite
+                                  await favouriteService.deleteTrackData(item.id); // Remove item
+                                } else {
+                                  await favouriteService.addItem(item); // Add item
+                                }
+                                await fetchAllFavs();
+                                setState(() {});
                               },
                             ),
+
                             title: Text(
                               item.trackName,
                               style: const TextStyle(
                                 fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                fontWeight: FontWeight.bold
                               ),
                             ),
                             subtitle: Text(
                               "${item.artistName} | ${'${(Duration(seconds: item.duration.toInt()))}'.split('.')[0].replaceFirst("0:", "")}",
-                              style: TextStyle(
-                                fontSize: 14.0,
-                                color: Colors.grey[700],
-                              ),
+                              style: const TextStyle(fontSize: 14.0,),
                             ),
                             onTap: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => UiPlainLyrics(trackData: item,) ));
+                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => UiPlainLyrics(trackData: Favourite.fromTrackData(item),) ));
                             },
                           );
                         },
@@ -205,4 +199,6 @@ class _FrontPageState extends State<FrontPage> {
       ),
     );
   }
+
+
 }

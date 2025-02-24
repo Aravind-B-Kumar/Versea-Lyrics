@@ -29,7 +29,7 @@ Future<List<Lyrics>> getLyrics(
   try {
     final response = await http.get(uri,headers: {"User-Agent":"Versea Lyric"},);
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes));
       final List<Lyrics> results = [];
       for (var record in data) {
         if (record["plainLyrics"] != null) {
