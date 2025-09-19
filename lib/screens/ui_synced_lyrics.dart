@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lrc/lrc.dart';
@@ -32,24 +31,14 @@ class _UiSyncedLyricsState extends State<UiSyncedLyrics> {
   final ItemPositionsListener itemPositionsListener = ItemPositionsListener.create();
   int initialScrollIndex = 0;
 
-  // Add the Timer variable
-  Timer? _playbackTimer;
-
   @override
   void initState() {
     super.initState();
     parsedLrc = widget.trackData.syncedLyrics!.toLrc();
     currentLyric = parsedLrc.lyrics.first.lyrics;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToActiveLyric(initialScrollIndex);
+      _scrollToActiveLyric(initialScrollIndex); // Scroll to initial index
     });
-  }
-
-  @override
-  void dispose() {
-    // Cancel the timer when the widget is disposed
-    _playbackTimer?.cancel();
-    super.dispose();
   }
 
   void _scrollToActiveLyric(int activeIndex) {
@@ -58,7 +47,7 @@ class _UiSyncedLyricsState extends State<UiSyncedLyrics> {
         index: activeIndex,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        alignment: 0.35,
+        alignment: 0.35, // Centers the item
       );
     }
   }
@@ -70,35 +59,14 @@ class _UiSyncedLyricsState extends State<UiSyncedLyrics> {
         if (currentLyric != parsedLrc.lyrics[i].lyrics) {
           setState(() {
             currentLyric = parsedLrc.lyrics[i].lyrics;
-            activeLyricIndex = i;
+            activeLyricIndex = i; // Update active index immediately
           });
-          _scrollToActiveLyric(i);
+          _scrollToActiveLyric(i); // Scroll to the new active index
         }
         newActiveIndex = i;
         break;
       }
     }
-  }
-
-  // New method to start playback with a Timer
-  void _startPlayback() {
-    _playbackTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!isPlaying) {
-        timer.cancel(); // Cancel the timer if playback is stopped
-        return;
-      }
-      setState(() {
-        if (currentTime < parsedLrc.lyrics.last.timestamp.inSeconds) {
-          currentTime += 1;
-          _updateLyric(currentTime);
-        } else {
-          currentTime = 0;
-          isPlaying = false;
-          _updateLyric(currentTime);
-          timer.cancel(); // Stop the timer when the song ends
-        }
-      });
-    });
   }
 
   void _togglePlay() {
@@ -108,34 +76,43 @@ class _UiSyncedLyricsState extends State<UiSyncedLyrics> {
 
     if (isPlaying) {
       _startPlayback();
-    } else {
-      _playbackTimer?.cancel(); // Cancel the timer on pause
     }
+  }
+
+  void _startPlayback() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (isPlaying) {
+        setState(() {
+          if (currentTime < parsedLrc.lyrics.last.timestamp.inSeconds) {
+            currentTime += 1;
+            _updateLyric(currentTime);
+          } else {
+            currentTime = 0;
+            isPlaying = false;
+            _updateLyric(currentTime);
+          }
+        });
+      }
+      return isPlaying;
+    });
   }
 
   void _onSeek(double value) {
     double roundedValue = value.roundToDouble();
-    // Cancel the timer to prevent conflicts
-    _playbackTimer?.cancel();
-
     setState(() {
       currentTime = roundedValue.clamp(0.0, parsedLrc.lyrics.last.timestamp.inSeconds.toDouble());
       _updateLyric(currentTime);
-      isPlaying = false; // Pause playback on seek
     });
   }
 
   void _onLyricTap(Duration timestamp) {
-    // Cancel any existing timer to stop the old playback
-    _playbackTimer?.cancel();
-
     setState(() {
       currentTime = timestamp.inSeconds.toDouble();
       _updateLyric(currentTime);
-      isPlaying = true; // Set to true to start a new playback
+      isPlaying = true;
+      _startPlayback();
     });
-
-    _startPlayback(); // Start a fresh, single playback loop
   }
 
   @override
