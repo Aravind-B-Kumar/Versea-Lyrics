@@ -1,4 +1,4 @@
-# versealyric
+# Versea-Lyrics - A lyrics finder app 
 
 - Flutter app for searching lyrics
 - Uses [LrcLib](https://lrclib.net) api
